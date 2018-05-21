@@ -3,8 +3,6 @@ package com.project.annotation.impl;
 import com.project.annotation.CheckParams;
 import com.project.validate.Valid;
 import org.aspectj.lang.ProceedingJoinPoint;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -14,24 +12,32 @@ import java.lang.reflect.Method;
 import java.math.BigDecimal;
 
 /**
- * @Author: 20113
+ * @Author:magic.wang
  * @Date: 2018/5/21 上午10:28
- * @description
+ * @description:@CheckParams校验实现类
  */
 @Service
 public class ParameterCheckImpl {
 
+    
+    /**
+     *@description 描述 校验总入口
+     *@param  joinPoint 切点
+     *@author magic.wang
+     *@date   2018/5/21
+     */
     public void check(ProceedingJoinPoint joinPoint) throws Exception {
+        //这个throw出异常，便于jar包共其他工程引入sdk，可以统一异常处理
         String methodName = joinPoint.getSignature().getName();
         Object target = joinPoint.getTarget();
         Method method = getMethodByClassAndName(target.getClass(), methodName);
         Annotation[][] annotations = method.getParameterAnnotations();
-        Object[] args = joinPoint.getArgs(); // 方法的参数
+        Object[] args = joinPoint.getArgs();
         if (annotations != null) {
             for (int i = 0; i < annotations.length; i++) {
                 Annotation[] anno = annotations[i];
                 for (int j = 0; j < anno.length; j++) {
-                    if (anno[j].annotationType().equals(Valid.class)) {
+                    if (anno[j].annotationType().equals(Valid.class)) {//判断是否有注解
                         String str = checkParam(args[i]);
                         if (StringUtils.hasText(str)) {
                             throw new RuntimeException(str);
@@ -42,11 +48,14 @@ public class ParameterCheckImpl {
         }
     }
 
+
     private String checkParam(Object args) throws Exception {
-        Field[] field = args.getClass().getDeclaredFields();// 获取方法参数（实体）的field
+        Field[] field = args.getClass().getDeclaredFields();
         for (int j = 0; j < field.length; j++) {
-            CheckParams check = field[j].getAnnotation(CheckParams.class);// 获取方法参数（实体）的field上的注解Check
+            // 获取方法参数或者（实体）的field上的注解
+            CheckParams check = field[j].getAnnotation(CheckParams.class);
             if (check != null) {
+                //开始验证注解字段
                 String str = validateFiled(check, field[j], args);
                 if (StringUtils.hasText(str)) {
                     return str;
@@ -56,12 +65,18 @@ public class ParameterCheckImpl {
         return "";
     }
 
+    /**
+     *@description 描述
+     *@param  check 校验注解 Field 带校验字典 args 所有参数
+     *@return "":校验通过，其他：校验失败并返回失败原因：str
+     *@author wangbb/20113
+     *@date   2018/5/21
+     */
     public String validateFiled(CheckParams check, Field field, Object args) throws Exception {
         field.setAccessible(true);
-        // 获取field长度
         int length = 0;
-        Object fieldValue = field.get(args);
-        String fieldValueStr = String.valueOf(fieldValue);
+        Object fieldValue = field.get(args);//获取值
+        String fieldValueStr = String.valueOf(fieldValue);//获取值str类型
         if (fieldValue != null) {
             length = (fieldValueStr).length();
         }
@@ -114,7 +129,8 @@ public class ParameterCheckImpl {
         return "";
     }
 
-    public Method getMethodByClassAndName(Class c, String methodName) {
+    //获取方法Method
+    private Method getMethodByClassAndName(Class c, String methodName) {
         Method[] methods = c.getDeclaredMethods();
         for (Method method : methods) {
             System.out.println(method.getName());

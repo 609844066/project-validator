@@ -3,7 +3,7 @@ package com.project.enums;
 /**
  * @Author: 20113
  * @Date: 2018/5/21 下午1:37
- * @description
+ * @description 用户类型枚举
  */
 
 public enum UserTypeEnum {

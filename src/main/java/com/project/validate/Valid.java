@@ -12,5 +12,5 @@ import java.lang.annotation.Target;
  */
 @Target({ElementType.METHOD,ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Valid {
+public @interface Valid {//用户扫描注解进行校验
 }

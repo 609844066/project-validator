@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 /**
  * @Author: 20113
  * @Date: 2018/5/21 上午10:26
- * @description
+ * @description 定义controller切面
  */
 @Aspect
 @Component
@@ -26,6 +26,7 @@ public class ParameterCheckAspect {
 
     @Around(value = "check()",argNames = "Valid")
     public Object checkValid(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
+        //分析处理实现
         parameterCheck.check(proceedingJoinPoint);
         Object proceed = proceedingJoinPoint.proceed();
         return proceed;
