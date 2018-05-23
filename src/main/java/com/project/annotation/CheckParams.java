@@ -6,47 +6,46 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * @Author: 20113
+ * @Author: magic.wang
  * @Date: 2018/5/21 上午10:40
- * @description
+ * @description 实体校验注解
  */
 @Target({ ElementType.METHOD, ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface CheckParams {
 
-    /**
-     * 是否为空
-     */
-    public boolean notNull() default false;
+    String message() default "";
 
     /**
      * 是否为空
      */
-    public boolean notBlank() default false;
+    boolean notNull() default false;
 
     /**
      * 是否为数值
      */
-    public boolean numeric() default false;
+    boolean numeric() default false;
 
     /**
      * 最大长度
      */
-    public int maxLen() default -1;
+    int maxLen() default -1;
 
     /**
      * 最小长度
      */
-    public int minLen() default -1;
+    int minLen() default -1;
 
     /**
      * 最小数值
      */
-    public long minNum() default -999999;
+    long minNum() default -999999;
 
     /**
-     * 校验值是否合法,传递枚举值，如：UserTypeEnum.class
+     * 校验值是否合法,传递枚举值，如：UserTypeEnum.class，此处默认值为本身只是作为默认标示没有实际作用
      */
-    public Class enumsValue();
+    Class enumsValue() default CheckParams.class;
+
+    Class<?>[] groups() default {};
 
 }

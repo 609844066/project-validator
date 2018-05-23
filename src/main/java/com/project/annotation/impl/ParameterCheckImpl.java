@@ -3,6 +3,7 @@ package com.project.annotation.impl;
 import com.project.annotation.CheckParams;
 import com.project.validate.Valid;
 import org.aspectj.lang.ProceedingJoinPoint;
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -19,7 +20,6 @@ import java.math.BigDecimal;
 @Service
 public class ParameterCheckImpl {
 
-    
     /**
      *@description 描述 校验总入口
      *@param  joinPoint 切点
@@ -38,7 +38,9 @@ public class ParameterCheckImpl {
                 Annotation[] anno = annotations[i];
                 for (int j = 0; j < anno.length; j++) {
                     if (anno[j].annotationType().equals(Valid.class)) {//判断是否有注解
-                        String str = checkParam(args[i]);
+                        Valid valid = AnnotationUtils.getAnnotation(anno[j], Valid.class);
+                        Class<?>[] value = valid.value();
+                        String str = checkParam(args[i],value);
                         if (StringUtils.hasText(str)) {
                             throw new RuntimeException(str);
                         }
@@ -49,14 +51,14 @@ public class ParameterCheckImpl {
     }
 
 
-    private String checkParam(Object args) throws Exception {
+    private String checkParam(Object args,Class<?>[] t) throws Exception {
         Field[] field = args.getClass().getDeclaredFields();
         for (int j = 0; j < field.length; j++) {
             // 获取方法参数或者（实体）的field上的注解
             CheckParams check = field[j].getAnnotation(CheckParams.class);
             if (check != null) {
                 //开始验证注解字段
-                String str = validateFiled(check, field[j], args);
+                String str = validateFiled(check, field[j], args,t);
                 if (StringUtils.hasText(str)) {
                     return str;
                 }
@@ -72,11 +74,16 @@ public class ParameterCheckImpl {
      *@author wangbb/20113
      *@date   2018/5/21
      */
-    public String validateFiled(CheckParams check, Field field, Object args) throws Exception {
+    public String validateFiled(CheckParams check, Field field, Object args,Class<?>[] t) throws Exception {
         field.setAccessible(true);
         int length = 0;
         Object fieldValue = field.get(args);//获取值
         String fieldValueStr = String.valueOf(fieldValue);//获取值str类型
+
+        //是否进行校验分组，如是则匹配字段上的校验分组
+        if(check.groups().length==0||!(check.groups()[0].getSimpleName().equals(t[0].getSimpleName()))){
+            return "";
+        }
         if (fieldValue != null) {
             length = (fieldValueStr).length();
         }
@@ -113,19 +120,21 @@ public class ParameterCheckImpl {
         }
 
         //校验值是否合法
-        if (check.enumsValue() != null) {
+        if (!check.enumsValue().getName().equals(CheckParams.class.getName())) {
             boolean flag = false;
-            Method values = check.enumsValue().getMethod("values");
-            Object[] invoke = (Object[]) values.invoke(null);
-            for (Object o : invoke) {
-                if (fieldValue.equals(o.toString())) {
+            Method values = check.enumsValue().getMethod("getCode");
+            Object[] enumConstants = check.enumsValue().getEnumConstants();//获取枚举数据
+            for (Object enumConstant : enumConstants) {
+                Object invokeValue = values.invoke(enumConstant);
+                if(fieldValue.equals(invokeValue)){
                     flag = true;
                 }
             }
             if (!flag) {
-                return field.getName() + "不存在值" + fieldValue;
+                return field.getName() + "不存在值"+fieldValue;
             }
         }
+
         return "";
     }
 
@@ -133,7 +142,6 @@ public class ParameterCheckImpl {
     private Method getMethodByClassAndName(Class c, String methodName) {
         Method[] methods = c.getDeclaredMethods();
         for (Method method : methods) {
-            System.out.println(method.getName());
             if (method.getName().equals(methodName)) {
                 return method;
             }
