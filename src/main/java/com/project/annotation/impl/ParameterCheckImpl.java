@@ -1,8 +1,10 @@
 package com.project.annotation.impl;
 
 import com.project.annotation.CheckParams;
+import com.project.config.ErrorMessage;
 import com.project.validate.Valid;
 import org.aspectj.lang.ProceedingJoinPoint;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -11,6 +13,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
+import java.text.MessageFormat;
 
 /**
  * @Author:magic.wang
@@ -19,6 +22,9 @@ import java.math.BigDecimal;
  */
 @Service
 public class ParameterCheckImpl {
+
+    @Autowired
+    private ErrorMessage errorMessage;
 
     /**
      *@description 描述 校验总入口
@@ -80,6 +86,8 @@ public class ParameterCheckImpl {
         Object fieldValue = field.get(args);//获取值
         String fieldValueStr = String.valueOf(fieldValue);//获取值str类型
 
+
+
         //是否进行校验分组，如是则匹配字段上的校验分组
         if(check.groups().length==0||!(check.groups()[0].getSimpleName().equals(t[0].getSimpleName()))){
             return "";
@@ -89,22 +97,22 @@ public class ParameterCheckImpl {
         }
         if (check.notNull()) {
             if (fieldValue == null) {
-                return field.getName() + "不能为空";
+                return MessageFormat.format(errorMessage.getNotNull(),field.getName(),check.maxLen());
             }
         }
         if (check.maxLen() > 0 && (length > check.maxLen())) {
-            return field.getName() + "长度不能大于" + check.maxLen();
+            return MessageFormat.format(errorMessage.getMaxLen(),field.getName(),check.maxLen());
         }
 
         if (check.minLen() > 0 && (length < check.minLen())) {
-            return field.getName() + "长度不能小于" + check.minLen();
+            return MessageFormat.format(errorMessage.getMinLen(),field.getName(),check.maxLen());
         }
 
         if (check.numeric() && fieldValue != null) {
             try {
                 new BigDecimal(fieldValueStr);
             } catch (Exception e) {
-                return field.getName() + "必须为数值型";
+                return MessageFormat.format(errorMessage.getNumeric(),field.getName());
             }
         }
         if (check.minNum() != -999999) {
@@ -112,10 +120,10 @@ public class ParameterCheckImpl {
                 long fieldValue2 = Long
                         .parseLong(fieldValueStr);
                 if (fieldValue2 < check.minNum()) {
-                    return field.getName() + "必须不小于" + check.minNum();
+                    return MessageFormat.format(errorMessage.getMinNum(),field.getName(),check.minNum());
                 }
             } catch (Exception e) {
-                return field.getName() + "必须为数值型，且不小于" + check.minNum();
+                return MessageFormat.format(errorMessage.getMinNum(),field.getName(),check.minNum());
             }
         }
 
@@ -131,7 +139,7 @@ public class ParameterCheckImpl {
                 }
             }
             if (!flag) {
-                return field.getName() + "不存在值"+fieldValue;
+                return MessageFormat.format(errorMessage.getMinNum(),field.getName(),fieldValue);
             }
         }
 
