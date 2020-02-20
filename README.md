@@ -39,3 +39,6 @@ example5：此例子是用于保存接口不用传递id参数，但是修改接�
 下面的意思是：分组为UserParam的id不能为空
 @CheckParams(notNull = true,groups=UserParam.class)
 private String id;
+
+
+111
