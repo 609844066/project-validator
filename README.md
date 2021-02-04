@@ -39,3 +39,21 @@ example5：此例子是用于保存接口不用传递id参数，但是修改接�
 下面的意思是：分组为UserParam的id不能为空
 @CheckParams(notNull = true,groups=UserParam.class)
 private String id;
+
+2021.2.4
+1、新增接口参数对象下划线转驼峰
+2、新增参数枚举校验
+3、新增简单缓存系统
+
+example：
+接口参数下划线转驼峰，前端可用下划线传参数，服务端用驼峰定义对象属性也可以接收
+@UnderLineConvertHump=>com.project.controllers.Demo3Controller.testList
+
+接口参数枚举校验，带自定义描述
+@EnumValid(enumClass = UserTypeEnum.class,message = "用户类型参数不合法")
+
+接口参数枚举校验，默认描述
+@EnumValid(enumClass = UserTypeEnum.class) -》com.project.param.UserParam2
+
+缓存系统使用相见类-》com.project.annotation.cache.CacheTest
+面试带时候会问如果让你实现一个简单缓存系统思路有方案
